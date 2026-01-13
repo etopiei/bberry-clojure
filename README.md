@@ -1,5 +1,7 @@
 # BBerry Clojure
 
+[Try it out: bberry-clojure.etopiei.com](https://bberry-clojure.etopiei.com/)
+
 I recently changed phones to a Zinwa Q25 (a modified Blackberry Q20) and really enjoy the keyboard.
 
 Therefore I thought it would be great to be able to code on the go with it!
@@ -8,7 +10,7 @@ This project is an attempt to bring a minimal Clojure editor to my phone as I co
 
 ## In Action
 
-Coming Soon! I'll attach a screenshot here once I deploy this and get up and running.
+![Phone running app](demo.png)
 
 ## Thanks
 
@@ -30,6 +32,7 @@ Chuck it on a USB and you're always good to go!
 
 ## Todos/Ideas
 
+ - Fix bug inserting opening bracket/brace not creating matching pair
  - Notify when there is output/error
  - Inline the output somehow
  - Add ability to eval form before point
