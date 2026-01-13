@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BB Clojure Editor</title>
+        <style type="text/css" media="screen"></style>
+        <script src="scittle.js"></script>
+        <script>
+            scittle.core.disable_auto_eval();
+        </script>
+    </head>
+    <body>
+        <div>
+            <pre id="editor">;; Write Clojure here!</pre>
+            <div id="output"></div>
+        </div>
+        <div class="view-toggle">
+            <button onclick="changeView('code')">code</button>
+            <button onclick="changeView('logs')">result</button>
+            <button onclick="changeView('error')">err</button>
+        </div>
+        <div class="button-bar">
+            <button onclick="insertOpenSquare()">[</button>
+            <button onclick="insertCloseSquare()">]</button>
+            <button onclick="insertBackslash()">\</button>
+            <button onclick="insertOpenCurly()">{</button>
+            <button onclick="insertCloseCurly()">}</button>
+            <button onclick="insertPercent()">%</button>
+            <button onclick="insertGt()">&gt;</button>
+            <button onclick="insertLt()">&lt;</button><br />
+            <button onclick="slurpForward()">Slurp Forward</button>
+            <button onclick="barfForward()">Barf Forward</button>
+            <button onclick="lineEnd()">Line End</button>
+            <button onclick="evalFile()">Eval File</button>
+            <button onclick="saveFile()">Save File</button>
+            <input type="file" id="fileElem" />
+            <button id="fileSelect" type="button">Load File</button>
+        </div>
+
+        <script src="ace.js" type="text/javascript" charset="utf-8"></script>
+        <script
+            src="ext-language_tools.js"
+            type="text/javascript"
+            charset="utf-8"
+        ></script>
+        <script
+            src="keybinding-emacs.js"
+            type="text/javascript"
+            charset="utf-8"
+        ></script>
+        <script
+            src="paredit-bundle.js"
+            type="text/javascript"
+            charset="utf-8"
+        ></script>
+        <script
+            src="ace.improvements.js"
+            type="text/javascript"
+            charset="utf-8"
+        ></script>
+        <script
+            src="ace.ext.lang.codemarker.js"
+            type="text/javascript"
+            charset="utf-8"
+        ></script>
+        <script
+            src="ace.ext.lang.ast-commands.js"
+            type="text/javascript"
+            charset="utf-8"
+        ></script>
+        <script
+            src="ace.ext.keys.js"
+            type="text/javascript"
+            charset="utf-8"
+        ></script>
+        <script
+            src="ace.ext.lang.paredit.js"
+            type="text/javascript"
+            charset="utf-8"
+        ></script>
+        <script>
+            // Globals
+            let currentView = "code";
+            let stdout = "";
+            let errorOut = "";
+
+            const changeView = (newViewType) => {
+                switch (newViewType) {
+                    case "code":
+                        editorEl = document.getElementById("editor");
+                        editorEl.style.display = "block";
+                        outputEl = document.getElementById("output");
+                        outputEl.style.display = "none";
+                        break;
+                    case "logs":
+                        editorEl = document.getElementById("editor");
+                        editorEl.style.display = "none";
+                        outputEl = document.getElementById("output");
+                        outputEl.style.display = "block";
+                        outputEl.innerHTML = stdout;
+                        break;
+                    case "error":
+                        editorEl = document.getElementById("editor");
+                        editorEl.style.display = "none";
+                        outputEl = document.getElementById("output");
+                        outputEl.style.display = "block";
+                        outputEl.innerHTML = errorOut;
+                        break;
+                }
+            };
+
+            // Editor commands
+            const slurpForward = () => {
+                editor.execCommand("paredit-slurpSexp");
+            };
+            const barfForward = () => {
+                editor.execCommand("paredit-barfSexp");
+            };
+            const type = (val) => {
+                editor.insert(val);
+                editor.focus();
+            };
+            const insertLt = () => {
+                type("<");
+            };
+            const insertGt = () => {
+                type(">");
+            };
+            const insertPercent = () => {
+                type("%");
+            };
+            const insertCloseCurly = () => {
+                type("}");
+            };
+            const insertOpenCurly = () => {
+                type("{");
+            };
+            const insertBackslash = () => {
+                type("\\");
+            };
+            const insertCloseSquare = () => {
+                type("]");
+            };
+            const insertOpenSquare = () => {
+                type("[");
+            };
+            const lineEnd = () => {
+                editor.navigateLineEnd();
+                editor.focus();
+            };
+            const evalFile = () => {
+                try {
+                    result = window.scittle.core.eval_string(editor.getValue());
+                    stdout += "\n" + result;
+                } catch (e) {
+                    errorOut += "\n" + e.message;
+                }
+            };
+
+            // Save and load files
+            const saveFile = () => {
+                download("main.clj", editor.getValue());
+            };
+
+            function download(filename, text) {
+                var element = document.createElement("a");
+                element.setAttribute(
+                    "href",
+                    "data:text/plain;charset=utf-8," + encodeURIComponent(text),
+                );
+                element.setAttribute("download", filename);
+
+                element.style.display = "none";
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
+            }
+
+            const fileSelect = document.getElementById("fileSelect");
+            const fileElem = document.getElementById("fileElem");
+
+            fileSelect.addEventListener("click", (e) => {
+                if (fileElem) {
+                    fileElem.click();
+                }
+            });
+
+            fileElem.addEventListener("change", handleFiles);
+
+            function handleFiles() {
+                const files = fileElem.files;
+                if (files.length) {
+                    const reader = new FileReader();
+                    reader.addEventListener("load", () => {
+                        editor.setValue(reader.result);
+                        lineEnd();
+                    });
+                    reader.readAsText(files[0]);
+                }
+            }
+
+            // Editor setup
+            const editor = ace.edit("editor");
+            editor.setTheme("ace/theme/solarized_light");
+            editor.getSession().setMode("ace/mode/clojure");
+
+            editor.setOptions({
+                enableBasicAutocompletion: true,
+                enableSnippets: true,
+                showGutter: false,
+                highlightActiveLine: false,
+                showPrintMargin: false,
+                fontSize: 16,
+            });
+
+            editor.keyBinding.addKeyboardHandler(
+                ace.require("ace/keyboard/emacs").handler,
+            );
+            const occurStartCommand = ace.require(
+                "ace/commands/occur_commands",
+            ).occurStartCommand;
+            editor.commands.addCommand(occurStartCommand);
+            editor.focus();
+        </script>
+    </body>
+</html>
+
+<style>
+    body {
+        overflow: hidden;
+        width: 100%;
+    }
+    #editor {
+        margin: 0;
+        top: 0;
+        left: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+    .ace-syntax-error {
+        position: absolute;
+        border-radius: 3px;
+        background: rgba(255, 0, 0, 0.7);
+    }
+    .button-bar {
+        position: absolute;
+        bottom: 16px;
+        width: 100%;
+    }
+
+    .button-bar button {
+        padding: 16px;
+    }
+    .view-toggle {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+    }
+    .view-toggle button {
+        background-color: rgba(0, 0, 0, 1);
+        color: rgb(255, 255, 255);
+    }
+    #fileElem {
+        display: none;
+    }
+</style>
