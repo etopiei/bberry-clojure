@@ -32,9 +32,9 @@ Chuck it on a USB and you're always good to go!
 
 ## Todos/Ideas
 
- - Fix bug inserting opening bracket/brace not creating matching pair
- - Notify when there is output/error
+ - ~~Notify when there is output/error~~
+ - ~~Improve style of output/error~~
+ - ~~Fix bug inserting opening bracket/brace not creating matching pair~~
  - Inline the output somehow
  - Add ability to eval form before point
- - Improve style of output/error
  - Dark mode support

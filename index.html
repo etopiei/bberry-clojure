@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>BB Clojure Editor</title>
         <style type="text/css" media="screen"></style>
         <script src="js/scittle.js"></script>
@@ -18,25 +18,31 @@
         </div>
         <div class="view-toggle">
             <button onclick="changeView('code')">code</button>
-            <button onclick="changeView('logs')">result</button>
-            <button onclick="changeView('error')">err</button>
+            <button id="stdout-button" onclick="changeView('logs')">
+                result
+            </button>
+            <button id="error-button" onclick="changeView('error')">err</button>
         </div>
         <div class="button-bar">
-            <button onclick="insertOpenSquare()">[</button>
-            <button onclick="insertCloseSquare()">]</button>
-            <button onclick="insertBackslash()">\</button>
-            <button onclick="insertOpenCurly()">{</button>
-            <button onclick="insertCloseCurly()">}</button>
-            <button onclick="insertPercent()">%</button>
-            <button onclick="insertGt()">&gt;</button>
-            <button onclick="insertLt()">&lt;</button><br />
-            <button onclick="slurpForward()">Slurp Forward</button>
-            <button onclick="barfForward()">Barf Forward</button>
-            <button onclick="lineEnd()">Line End</button>
-            <button onclick="evalFile()">Eval File</button>
-            <button onclick="saveFile()">Save File</button>
-            <input type="file" id="fileElem" />
-            <button id="fileSelect" type="button">Load File</button>
+            <div class="top-buttons">
+                <button onclick="insertOpenSquare()">[</button>
+                <button onclick="insertCloseSquare()">]</button>
+                <button onclick="insertBackslash()">\</button>
+                <button onclick="insertOpenCurly()">{</button>
+                <button onclick="insertCloseCurly()">}</button>
+                <button onclick="insertPercent()">%</button>
+                <button onclick="insertLt()">&lt;</button>
+                <button onclick="insertGt()">&gt;</button>
+            </div>
+            <div class="bottom-buttons">
+                <button onclick="slurpForward()">Slurp</button>
+                <button onclick="barfForward()">Barf</button>
+                <button onclick="lineEnd()">Line End</button>
+                <button onclick="evalFile()">Eval File</button>
+                <button onclick="saveFile()">Download</button>
+                <input type="file" id="fileElem" />
+                <button id="fileSelect" type="button">Open</button>
+            </div>
         </div>
 
         <script src="js/ace.js" type="text/javascript" charset="utf-8"></script>
@@ -100,6 +106,9 @@
                         outputEl = document.getElementById("output");
                         outputEl.style.display = "block";
                         outputEl.innerHTML = stdout;
+                        document.getElementById(
+                            "stdout-button",
+                        ).style.backgroundColor = "black";
                         break;
                     case "error":
                         editorEl = document.getElementById("editor");
@@ -107,6 +116,9 @@
                         outputEl = document.getElementById("output");
                         outputEl.style.display = "block";
                         outputEl.innerHTML = errorOut;
+                        document.getElementById(
+                            "error-button",
+                        ).style.backgroundColor = "black";
                         break;
                 }
             };
@@ -136,6 +148,9 @@
             };
             const insertOpenCurly = () => {
                 type("{");
+                type("}");
+                position = editor.getCursorPosition();
+                editor.navigateTo(position.row, position.column - 1);
             };
             const insertBackslash = () => {
                 type("\\");
@@ -145,6 +160,9 @@
             };
             const insertOpenSquare = () => {
                 type("[");
+                type("]");
+                position = editor.getCursorPosition();
+                editor.navigateTo(position.row, position.column - 1);
             };
             const lineEnd = () => {
                 editor.navigateLineEnd();
@@ -153,9 +171,15 @@
             const evalFile = () => {
                 try {
                     result = window.scittle.core.eval_string(editor.getValue());
-                    stdout += "\n" + result;
+                    stdout += "<br>" + result;
+                    document.getElementById(
+                        "stdout-button",
+                    ).style.backgroundColor = "red";
                 } catch (e) {
-                    errorOut += "\n" + e.message;
+                    errorOut += "<br>" + e.message;
+                    document.getElementById(
+                        "error-button",
+                    ).style.backgroundColor = "red";
                 }
             };
 
@@ -240,7 +264,8 @@
         left: 0;
         position: absolute;
         width: 100%;
-        height: 100%;
+        height: calc(100% - 110px);
+        overflow-y: scroll;
     }
     .ace-syntax-error {
         position: absolute;
@@ -249,11 +274,16 @@
     }
     .button-bar {
         position: absolute;
-        bottom: 16px;
+        bottom: 2px;
         width: 100%;
     }
-
-    .button-bar button {
+    .button-bar div {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: center;
+    }
+    .button-bar div button {
         padding: 16px;
     }
     .view-toggle {
@@ -267,5 +297,17 @@
     }
     #fileElem {
         display: none;
+    }
+    #output {
+        display: none;
+        top: 0;
+        left: 0;
+        position: absolute;
+        background-color: black;
+        color: white;
+        font-family: monospace;
+        width: 100%;
+        height: calc(100% - 110px);
+        overflow-y: scroll;
     }
 </style>
