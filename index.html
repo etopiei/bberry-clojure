@@ -254,7 +254,9 @@
                 var element = document.createElement("a");
                 element.setAttribute(
                     "href",
-                    "charset=utf-8," + encodeURIComponent(text),
+                    window.URL.createObjectURL(new Blob(text), {
+                        type: "application/text",
+                    }),
                 );
                 element.setAttribute("download", filename);
 
