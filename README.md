@@ -38,3 +38,4 @@ Chuck it on a USB and you're always good to go!
  - Inline the output somehow
  - Add ability to eval form before point
  - Dark mode support
+ - Add guide to README and site
