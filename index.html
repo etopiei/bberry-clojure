@@ -33,8 +33,6 @@
                 <button onclick="insertPercent()">%</button>
                 <button onclick="insertLt()">&lt;</button>
                 <button onclick="insertGt()">&gt;</button>
-                <button onclick="goToTop()">Top</button>
-                <button onclick="goToBottom()">Bottom</button>
                 <button onclick="goLeft()">⬅️</button>
                 <button onclick="goRight()">➡️</button>
                 <button onclick="goUp()">⬆️</button>
@@ -45,10 +43,10 @@
                 <button onclick="barfForward()">Barf</button>
                 <button onclick="backwardSexp()">BSexp</button>
                 <button onclick="forwardSexp()">FSexp</button>
-                <button onclick="lineStart()">LStart</button>
-                <button onclick="lineEnd()">LEnd</button>
+                <button onclick="lineStart()">Start</button>
+                <button onclick="lineEnd()">End</button>
                 <button onclick="evalFile()">Eval</button>
-                <button onclick="saveFile()">Download</button>
+                <button onclick="saveFile()">💾</button>
                 <input type="file" id="fileElem" />
                 <button id="fileSelect" type="button">Open</button>
             </div>
@@ -313,7 +311,12 @@
             ).occurStartCommand;
             editor.commands.addCommand(occurStartCommand);
             editor.focus();
-            window.editor = editor;
+
+            let editorEl = document.getElementById("editor");
+            editorEl.firstChild.setAttribute("inputmode", "none");
+
+            // For debugging
+            // window.editor = editor;
         </script>
     </body>
 </html>
