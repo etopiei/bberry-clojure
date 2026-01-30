@@ -13,7 +13,7 @@
     </head>
     <body>
         <div>
-            <pre id="editor">;; Write Clojure here!</pre>
+            <pre id="editor" inputmode="none">;; Write Clojure here!</pre>
             <div id="output"></div>
         </div>
         <div class="view-toggle">
@@ -33,12 +33,21 @@
                 <button onclick="insertPercent()">%</button>
                 <button onclick="insertLt()">&lt;</button>
                 <button onclick="insertGt()">&gt;</button>
+                <button onclick="goToTop()">Top</button>
+                <button onclick="goToBottom()">Bottom</button>
+                <button onclick="goLeft()">⬅️</button>
+                <button onclick="goRight()">➡️</button>
+                <button onclick="goUp()">⬆️</button>
+                <button onclick="goDown()">⬇️</button>
             </div>
             <div class="bottom-buttons">
                 <button onclick="slurpForward()">Slurp</button>
                 <button onclick="barfForward()">Barf</button>
-                <button onclick="lineEnd()">Line End</button>
-                <button onclick="evalFile()">Eval File</button>
+                <button onclick="backwardSexp()">BSexp</button>
+                <button onclick="forwardSexp()">FSexp</button>
+                <button onclick="lineStart()">LStart</button>
+                <button onclick="lineEnd()">LEnd</button>
+                <button onclick="evalFile()">Eval</button>
                 <button onclick="saveFile()">Download</button>
                 <input type="file" id="fileElem" />
                 <button id="fileSelect" type="button">Open</button>
@@ -151,6 +160,7 @@
                 type("}");
                 position = editor.getCursorPosition();
                 editor.navigateTo(position.row, position.column - 1);
+                editor.focus();
             };
             const insertBackslash = () => {
                 type("\\");
@@ -163,9 +173,63 @@
                 type("]");
                 position = editor.getCursorPosition();
                 editor.navigateTo(position.row, position.column - 1);
+                editor.focus();
             };
             const lineEnd = () => {
                 editor.navigateLineEnd();
+                editor.focus();
+            };
+            const lineStart = () => {
+                editor.navigateLineStart();
+                editor.focus();
+            };
+            const goToTop = () => {
+                editor.navigateTo(0, editor.getCursorPosition().column);
+                editor.focus();
+            };
+            const goToBottom = () => {
+                const totalLines = Math.max(1, editor.getSession().getLength());
+                editor.navigateTo(
+                    totalLines - 1,
+                    editor.getCursorPosition().column,
+                );
+                editor.focus();
+            };
+            const goLeft = () => {
+                position = editor.getCursorPosition();
+                editor.navigateTo(position.row, position.column - 1);
+                editor.focus();
+            };
+            const goRight = () => {
+                position = editor.getCursorPosition();
+                editor.navigateTo(position.row, position.column + 1);
+                editor.focus();
+            };
+            const goUp = () => {
+                position = editor.getCursorPosition();
+                editor.navigateTo(position.row - 1, position.column);
+                editor.focus();
+            };
+            const goDown = () => {
+                position = editor.getCursorPosition();
+                editor.navigateTo(position.row + 1, position.column);
+                editor.focus();
+            };
+            const forwardSexp = () => {
+                const ast = window.paredit.parse(editor.getValue());
+                const idx = editor.getCursorIndex();
+                const newIndex = window.paredit.navigator.forwardSexp(ast, idx);
+                editor.moveCursorToIndex(newIndex);
+                editor.focus();
+            };
+            const backwardSexp = () => {
+                const ast = window.paredit.parse(editor.getValue());
+                const idx = editor.getCursorIndex();
+                const newIndex = window.paredit.navigator.backwardSexp(
+                    ast,
+                    idx,
+                );
+                editor.moveCursorToIndex(newIndex);
                 editor.focus();
             };
             const evalFile = () => {
@@ -192,7 +256,7 @@
                 var element = document.createElement("a");
                 element.setAttribute(
                     "href",
-                    "data:text/plain;charset=utf-8," + encodeURIComponent(text),
+                    "charset=utf-8," + encodeURIComponent(text),
                 );
                 element.setAttribute("download", filename);
 
@@ -249,6 +313,7 @@
             ).occurStartCommand;
             editor.commands.addCommand(occurStartCommand);
             editor.focus();
+            window.editor = editor;
         </script>
     </body>
 </html>
@@ -275,6 +340,7 @@
     .button-bar {
         position: absolute;
         bottom: 2px;
+        left: 0;
         width: 100%;
     }
     .button-bar div {
@@ -294,6 +360,7 @@
     .view-toggle button {
         background-color: rgba(0, 0, 0, 1);
         color: rgb(255, 255, 255);
+        padding: 6px;
     }
     #fileElem {
         display: none;
