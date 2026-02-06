@@ -39,13 +39,12 @@
                 <button onclick="goDown()">⬇️</button>
             </div>
             <div class="bottom-buttons">
-                <button onclick="slurpForward()">Slurp</button>
-                <button onclick="barfForward()">Barf</button>
-                <button onclick="backwardSexp()">BS</button>
-                <button onclick="forwardSexp()">FS</button>
                 <button onclick="lineStart()">Start</button>
                 <button onclick="lineEnd()">End</button>
+                <button onclick="slurpForward()">Slurp</button>
+                <button onclick="barfForward()">Barf</button>
                 <button onclick="evalFile()">Eval</button>
+                <button onclick="evalFormBeforePoint()">Eval Form</button>
                 <button onclick="saveFile()">💾</button>
                 <input type="file" id="fileElem" />
                 <button id="fileSelect" type="button">Open</button>
@@ -98,6 +97,7 @@
             let currentView = "code";
             let stdout = "";
             let errorOut = "";
+            let evaledForms = [];
 
             const changeView = (newViewType) => {
                 switch (newViewType) {
@@ -213,35 +213,45 @@
                 editor.navigateTo(position.row + 1, position.column);
                 editor.focus();
             };
-            const forwardSexp = () => {
-                const ast = window.paredit.parse(editor.getValue());
-                const idx = editor.getCursorIndex();
-                const newIndex = window.paredit.navigator.forwardSexp(ast, idx);
-                editor.moveCursorToIndex(newIndex);
-                editor.focus();
+
+            const sendToOuput = (result) => {
+                stdout += "<br>" + result;
+                document.getElementById("stdout-button").style.backgroundColor =
+                    "red";
             };
-            const backwardSexp = () => {
-                const ast = window.paredit.parse(editor.getValue());
-                const idx = editor.getCursorIndex();
-                const newIndex = window.paredit.navigator.backwardSexp(
-                    ast,
-                    idx,
-                );
-                editor.moveCursorToIndex(newIndex);
-                editor.focus();
+
+            const sendToErr = (e) => {
+                errorOut += "<br>" + e.message;
+                document.getElementById("error-button").style.backgroundColor =
+                    "red";
             };
+
             const evalFile = () => {
                 try {
-                    result = window.scittle.core.eval_string(editor.getValue());
-                    stdout += "<br>" + result;
-                    document.getElementById(
-                        "stdout-button",
-                    ).style.backgroundColor = "red";
+                    const code = editor.getValue();
+                    const result = window.scittle.core.eval_string(code);
+                    sendToOuput(result);
                 } catch (e) {
-                    errorOut += "<br>" + e.message;
-                    document.getElementById(
-                        "error-button",
-                    ).style.backgroundColor = "red";
+                    sendToErr(e);
+                }
+            };
+
+            const evalFormBeforePoint = () => {
+                const editorText = editor.getValue();
+                const ast = window.paredit.parse(editorText);
+                const sexpRange = window.paredit.navigator.sexpRange(
+                    window.paredit.parse(editorText),
+                    editor.getCursorIndex(),
+                );
+                const code =
+                    editorText.slice(sexpRange[0], sexpRange[1]) + "\n";
+                try {
+                    const allCode = evaledForms.join("\n") + "\n" + code;
+                    const result = window.scittle.core.eval_string(allCode);
+                    evaledForms.push(code);
+                    window.alert(result);
+                } catch (e) {
+                    sendToErr(e);
                 }
             };
 
@@ -254,9 +264,11 @@
                 var element = document.createElement("a");
                 element.setAttribute(
                     "href",
-                    window.URL.createObjectURL(new Blob(text), {
-                        type: "application/text",
-                    }),
+                    window.URL.createObjectURL(
+                        new Blob([text], {
+                            type: "plain/text",
+                        }),
+                    ),
                 );
                 element.setAttribute("download", filename);
 

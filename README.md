@@ -35,7 +35,7 @@ Chuck it on a USB and you're always good to go!
  - ~~Notify when there is output/error~~
  - ~~Improve style of output/error~~
  - ~~Fix bug inserting opening bracket/brace not creating matching pair~~
- - Inline the output somehow
- - Add ability to eval form before point
+ - ~~Inline the output somehow (via alert)~~
+ - ~~Add ability to eval form before point~~
  - Dark mode support
  - Add guide to README and site
