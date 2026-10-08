@@ -10,7 +10,9 @@ This project is an attempt to bring a minimal Clojure editor to my phone as I co
 
 ## In Action
 
-![Phone running app](demo.png)
+https://github.com/user-attachments/assets/7ee4a57a-a9e8-4964-b472-57f272316bdd
+
+Demo recorded with scrcpy and OBS.
 
 ## Thanks
 
